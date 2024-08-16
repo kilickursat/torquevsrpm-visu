@@ -37,11 +37,14 @@ def load_and_preprocess_data(file):
     df = pd.read_csv(file, sep=None, engine='python', decimal=',')
     
     # Identify the correct column names
-    rpm_col = next((col for col in df.columns if 'rpm' in col.lower() or 'revolution' in col.lower()), None)
-    pressure_col = next((col for col in df.columns if 'pressure' in col.lower() or 'bar' in col.lower()), None)
+    rpm_col = next((col for col in df.columns if any(x in col.lower() for x in ['rpm', 'revolution', 'speed', 'drehzahl'])), None)
+    pressure_col = next((col for col in df.columns if any(x in col.lower() for x in ['pressure', 'bar', 'druck'])), None)
     
     if rpm_col is None or pressure_col is None:
         st.error("Could not identify the required columns. Please ensure your dataset has columns for RPM and Pressure.")
+        st.write("Available columns:", df.columns.tolist())
+        st.write("Sample of your data:")
+        st.write(df.head())
         return None
 
     # Rename columns for consistency
@@ -68,13 +71,17 @@ def main():
         df = load_and_preprocess_data(uploaded_file)
 
         if df is not None:
+            st.write("Data loaded successfully. Here's a sample:")
+            st.write(df.head())
+            st.write("Columns in your dataset:", df.columns.tolist())
+
             # Sidebar for user inputs
             st.sidebar.header("Parameter Settings")
             P_max = st.sidebar.number_input("Maximum power (kW)", value=132.0, min_value=1.0, max_value=500.0)
             nu = st.sidebar.number_input("Efficiency coefficient", value=0.7, min_value=0.1, max_value=1.0)
-            n_max = st.sidebar.number_input("Maximum rpm", value=df['Revolution [rpm]'].max(), min_value=1.0, max_value=100.0)
+            n_max = st.sidebar.number_input("Maximum rpm", value=df['Revolution [rpm]'].max(), min_value=1.0, max_value=10000.0)
             n_min = st.sidebar.number_input("Minimum rpm", value=df['Revolution [rpm]'].min(), min_value=1.0, max_value=n_max)
-            x_axis_max = st.sidebar.number_input("X-axis maximum", value=n_max * 1.1, min_value=n_max, max_value=100.0)
+            x_axis_max = st.sidebar.number_input("X-axis maximum", value=n_max * 1.1, min_value=n_max, max_value=10000.0)
 
             # Additional parameters
             M_cont_value = st.sidebar.number_input("Continuous torque (kNm)", value=44.0, min_value=1.0, max_value=100.0)
@@ -217,6 +224,8 @@ def main():
                 st.write(f"Number of RPM outliers: {len(rpm_outliers)}")
                 st.write(f"Percentage of RPM outliers: {len(rpm_outliers) / len(df) * 100:.2f}%")
 
+        else:
+            st.error("Unable to process the uploaded file. Please check the file format and contents.")
     else:
         st.info("Please upload a CSV file to begin the analysis.")
 
