@@ -5,6 +5,7 @@ import pandas as pd
 
 def main():
     st.title("Torque Analysis App")
+    st.sidebar.markdown("Created by Kursat Kilic - Geotechnical Digitalization")
 
     # Sidebar for user inputs
     st.sidebar.header("Parameter Settings")
@@ -200,6 +201,10 @@ def main():
 
     else:
         st.info("Please upload a CSV file to begin the analysis.")
+
+    # Add footer with creator information
+    st.markdown("---")
+    st.markdown("Created by Kursat Kilic - Geotechnical Digitalization")
 
 if __name__ == "__main__":
     main()
